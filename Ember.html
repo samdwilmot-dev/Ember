@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<title>Ember</title>
+
+<!-- PWA / add-to-home-screen -->
+<meta name="theme-color" content="#F2761A" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Ember" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="manifest" href='data:application/manifest+json,{"name":"Ember","short_name":"Ember","display":"standalone","background_color":"%23F4EBDD","theme_color":"%23F2761A","start_url":"./","icons":[]}' />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bg: #F4EBDD;
+    --bg2: #F8F1E6;
+    --card: #FCF8F1;
+    --card-soft: #ECE1D0;
+    --ink: #2D2620;
+    --muted: #9C8E7C;
+    --faint: #C9BBA7;
+    --ember: #F2761A;
+    --ember-deep: #DD5A12;
+    --flame-1: #FF9F44;
+    --flame-2: #F2691A;
+    --flame-yellow: #FFC861;
+    --ring-track: #E9DCC8;
+    --hot-band: #F7E9D5;
+    --freeze: #6FB0D4;
+    --freeze-soft: #DCEBF3;
+    --on-ember: #FFFFFF;
+    --shadow: 0 10px 30px rgba(120,82,40,0.10);
+    --shadow-sm: 0 4px 14px rgba(120,82,40,0.08);
+  }
+  html[data-theme="dark"] {
+    --bg: #15110E;
+    --bg2: #1C1712;
+    --card: #221C16;
+    --card-soft: #2C241B;
+    --ink: #F3E9DC;
+    --muted: #9C8B77;
+    --faint: #6E5E49;
+    --ring-track: #382C20;
+    --hot-band: #2A2118;
+    --freeze: #6FB0D4;
+    --freeze-soft: #21303A;
+    --shadow: 0 12px 34px rgba(0,0,0,0.45);
+    --shadow-sm: 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg2);
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    overscroll-behavior: none;
+  }
+
+  /* Phone shell — full-bleed on a phone, framed card on desktop */
+  #app {
+    width: 100%;
+    max-width: 430px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background:
+      radial-gradient(120% 80% at 50% 0%, var(--bg2) 0%, var(--bg) 55%);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    transition: background .35s ease;
+  }
+  @media (min-width: 460px) {
+    body { align-items: center; background: #ddd2c0; }
+    html[data-theme="dark"] body { background: #0c0a08; }
+    #app {
+      min-height: 0;
+      height: 880px;
+      max-height: 92vh;
+      border-radius: 44px;
+      box-shadow: 0 30px 80px rgba(60,40,20,.35), 0 0 0 11px #15110E, 0 0 0 13px #2c2620;
+      margin: 24px 0;
+    }
+    html[data-theme="dark"] #app { box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 11px #000, 0 0 0 13px #221c16; }
+  }
+
+  /* Scroll region */
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 18px 22px 14px;
+    scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* Brand row */
+  .brand {
+    display: flex; align-items: center; gap: 9px;
+    padding-top: env(safe-area-inset-top);
+    margin-bottom: 4px;
+  }
+  .brand .word { font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 23px; letter-spacing: .2px; }
+  .brand .spacer { flex: 1; }
+  .theme-btn {
+    border: none; background: var(--card); color: var(--muted);
+    width: 38px; height: 38px; border-radius: 50%;
+    display: grid; place-items: center; cursor: pointer; box-shadow: var(--shadow-sm);
+    transition: transform .15s ease;
+  }
+  .theme-btn:active { transform: scale(.9); }
+
+  .eyebrow {
+    text-transform: uppercase; letter-spacing: 2.2px; font-size: 11.5px;
+    font-weight: 700; color: var(--muted); text-align: center; margin: 14px 0 6px;
+  }
+  .page-title { font-family:'Fraunces',serif; font-weight:600; font-size:30px; margin:6px 0 2px; letter-spacing:.2px; }
+  .page-sub { color: var(--muted); font-size: 14.5px; margin: 0 0 18px; }
+
+  /* ---------- TODAY ---------- */
+  .ring-wrap { display:flex; flex-direction:column; align-items:center; margin: 8px 0 4px; }
+  .ring { position: relative; width: 230px; height: 230px; }
+  .ring svg { transform: rotate(-90deg); display:block; }
+  .ring .track { fill:none; stroke: var(--ring-track); stroke-width: 15; }
+  .ring .prog { fill:none; stroke: url(#emberGrad); stroke-width: 15; stroke-linecap: round; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1); }
+  .ring .center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring .flame-top { width: 34px; height: 40px; margin-bottom: 2px; }
+  .ring .big { font-family:'Fraunces',serif; font-weight:600; font-size: 62px; line-height: .9; }
+  .ring .of { color: var(--muted); font-size: 14px; font-weight:500; margin-top: 4px; }
+
+  .streak-pill {
+    margin: 18px auto 0; display:flex; align-items:center; gap:9px;
+    background: var(--card); border-radius: 999px; padding: 11px 20px;
+    width: fit-content; font-weight: 700; font-size: 15px; box-shadow: var(--shadow-sm);
+  }
+  .streak-pill svg { width: 17px; height: 20px; }
+
+  .week-card { background: var(--card); border-radius: 22px; padding: 16px 16px 14px; margin-top: 20px; box-shadow: var(--shadow-sm); }
+  .dow { display:grid; grid-template-columns: repeat(7,1fr); text-align:center; color: var(--muted); font-size: 12px; font-weight:600; margin-bottom: 9px; }
+  .dow .sun, .dow .sat { color: var(--ember); }
+  .week-row { display:grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .day {
+    aspect-ratio: 1; display:grid; place-items:center; border-radius: 50%;
+    font-size: 14px; font-weight: 600; color: var(--ink); background: transparent;
+    max-width: 38px; margin: 0 auto; width: 100%;
+  }
+  .day.dim { background: var(--card-soft); color: var(--muted); }
+  .day.gym { background: var(--ember); color: var(--on-ember); }
+  .day.today { box-shadow: inset 0 0 0 2px var(--ember); }
+  .goal-row { display:flex; align-items:center; justify-content:space-between; margin-top: 14px; }
+  .goal-row .label { color: var(--muted); font-size: 13.5px; font-weight:500; }
+  .drops { display:flex; gap: 6px; }
+  .drop { width: 17px; height: 20px; opacity: .28; }
+  .drop.lit { opacity: 1; }
+
+  .cta {
+    width: 100%; border: none; cursor: pointer; margin-top: 22px;
+    border-radius: 20px; padding: 19px; font-size: 16.5px; font-weight: 700;
+    color: var(--on-ember); font-family: inherit;
+    background: linear-gradient(165deg, var(--flame-1), var(--flame-2));
+    box-shadow: 0 12px 26px rgba(226,90,18,.34);
+    transition: transform .12s ease, box-shadow .2s ease, opacity .2s;
+  }
+  .cta:active { transform: translateY(2px) scale(.99); box-shadow: 0 6px 16px rgba(226,90,18,.3); }
+  .cta.done {
+    background: var(--card); color: var(--ember);
+    box-shadow: inset 0 0 0 2px var(--ember); 
+  }
+  .hint { text-align:center; color: var(--muted); font-size: 13px; margin: 12px 0 4px; }
+
+  /* ---------- CALENDAR ---------- */
+  .month-head { display:flex; align-items:center; justify-content:center; gap: 18px; margin: 10px 0 16px; }
+  .month-head button { background:none; border:none; color: var(--ember); font-size: 22px; cursor:pointer; padding: 4px 8px; line-height:1; }
+  .month-head .m { font-family:'Fraunces',serif; font-weight:600; font-size: 23px; }
+  .cal-dow { display:grid; grid-template-columns: repeat(7,1fr); text-align:center; color: var(--muted); font-size: 12px; font-weight:600; margin-bottom: 4px; }
+  .cal-grid { display:flex; flex-direction:column; gap: 2px; }
+  .cal-week { display:grid; grid-template-columns: repeat(7,1fr); border-radius: 14px; padding: 3px 0; }
+  .cal-week.hot { background: var(--hot-band); }
+  .cell { aspect-ratio: 1; display:grid; place-items:center; font-size: 14.5px; font-weight:600; }
+  .cell .num { width: 78%; max-width: 38px; aspect-ratio:1; display:grid; place-items:center; border-radius:50%; }
+  .cell.other .num { color: var(--faint); }
+  .cell.gym .num { background: var(--ember); color: var(--on-ember); }
+  .cell.today .num { box-shadow: inset 0 0 0 2px var(--ember); }
+  .legend { display:flex; gap:22px; justify-content:center; margin: 18px 0 4px; font-size:13.5px; color: var(--muted); font-weight:500; }
+  .legend span { display:flex; align-items:center; gap:7px; }
+  .legend .sw { width:14px; height:14px; border-radius:50%; }
+  .info-card { display:flex; gap:14px; align-items:center; background: var(--card); border-radius:22px; padding:18px; margin-top:16px; box-shadow: var(--shadow-sm); }
+  .info-card .ic { width:46px; height:46px; border-radius:14px; display:grid; place-items:center; background: var(--hot-band); flex:none; }
+  .info-card .ic svg { width:24px; height:28px; }
+  .info-card h3 { font-family:'Fraunces',serif; font-weight:600; font-size:18px; margin:0 0 3px; }
+  .info-card p { margin:0; color: var(--muted); font-size:13.5px; line-height:1.4; }
+
+  /* ---------- AWARDS ---------- */
+  .badge-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .badge { background: var(--card); border-radius: 22px; padding: 22px 14px 18px; text-align:center; box-shadow: var(--shadow-sm); }
+  .badge.locked { background: var(--bg); box-shadow: none; }
+  .badge .disc { width: 64px; height: 64px; border-radius: 18px; margin: 0 auto 14px; display:grid; place-items:center;
+    background: linear-gradient(165deg, var(--flame-1), var(--flame-2)); box-shadow: 0 8px 18px rgba(226,90,18,.3); }
+  .badge.locked .disc { background: var(--card-soft); box-shadow:none; }
+  .badge .disc svg { width: 28px; height: 33px; }
+  .badge .name { font-weight: 700; font-size: 15px; }
+  .badge.locked .name { color: var(--muted); }
+  .badge .desc { color: var(--muted); font-size: 12.5px; margin-top: 4px; line-height: 1.35; }
+  .badge .prog { color: var(--ember); font-weight: 700; font-size: 13px; margin-top: 8px; }
+
+  /* ---------- FRIENDS ---------- */
+  .freeze-card { display:flex; gap:14px; align-items:center; background: var(--freeze-soft); border-radius: 20px; padding: 16px; margin-bottom: 16px; }
+  .freeze-card .ic { width:44px; height:44px; border-radius:13px; background: var(--card); display:grid; place-items:center; flex:none; }
+  .freeze-card .ic svg { width: 22px; height: 22px; }
+  .freeze-card h3 { margin:0 0 2px; font-size: 15.5px; font-weight: 700; }
+  .freeze-card p { margin:0; color: var(--muted); font-size: 13px; line-height:1.35; }
+  .friend { display:flex; align-items:center; gap:13px; background: var(--card); border-radius: 20px; padding: 13px 14px; margin-bottom: 11px; box-shadow: var(--shadow-sm); }
+  .avatar { width:46px; height:46px; border-radius:50%; flex:none; display:grid; place-items:center; font-family:'Fraunces',serif; font-weight:600; font-size:19px; color:#fff; }
+  .friend .meta { flex:1; min-width:0; }
+  .friend .nm { display:flex; align-items:center; gap:7px; font-weight:700; font-size:15px; }
+  .friend .nm .wk { display:inline-flex; align-items:center; gap:3px; color: var(--ember); font-size:13px; font-weight:700; }
+  .friend .nm .wk svg { width:11px; height:13px; }
+  .friend .st { color: var(--muted); font-size:12.5px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .act { border:none; cursor:pointer; font-family:inherit; font-weight:700; font-size:13px; padding:9px 15px; border-radius:999px; flex:none; transition: transform .12s; }
+  .act:active { transform: scale(.93); }
+  .act.solid { background: var(--ember); color:#fff; }
+  .act.ghost { background: transparent; color: var(--ember); box-shadow: inset 0 0 0 1.6px var(--ember); }
+  .act.spent { background: var(--card-soft); color: var(--muted); box-shadow:none; }
+
+  /* ---------- BOTTOM NAV ---------- */
+  nav {
+    display:flex; background: var(--card);
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom));
+    box-shadow: 0 -6px 24px rgba(120,82,40,.07);
+    border-top: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+  html[data-theme="dark"] nav { box-shadow: 0 -6px 24px rgba(0,0,0,.4); }
+  .tab { flex:1; background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; color: var(--muted); font-family:inherit; padding:4px 0; }
+  .tab svg { width:25px; height:25px; }
+  .tab .lab { font-size: 11px; font-weight: 700; }
+  .tab.active { color: var(--ember); }
+
+  .hidden { display: none !important; }
+
+  /* ---------- CELEBRATION OVERLAY ---------- */
+  #celebrate {
+    position:absolute; inset:0; z-index:50; background: var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding: 40px; text-align:center;
+    animation: fade .4s ease;
+  }
+  @keyframes fade { from {opacity:0;} to {opacity:1;} }
+  #celebrate .bigflame { width: 110px; height: 132px; filter: drop-shadow(0 14px 30px rgba(242,118,26,.45)); animation: pop .6s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes pop { 0%{transform:scale(.3);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+  #celebrate .num { font-family:'Fraunces',serif; font-weight:600; font-size: 88px; color: var(--ember); line-height:1; margin-top: 6px; }
+  #celebrate .lab { font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size: 30px; margin-top: 2px; }
+  #celebrate .dots { display:flex; gap:9px; margin: 22px 0 18px; }
+  #celebrate .cd { width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:700; background: var(--card-soft); color: var(--muted); }
+  #celebrate .cd.on { background: var(--ember); color:#fff; }
+  #celebrate p { color: var(--muted); font-size: 15px; max-width: 280px; line-height:1.45; }
+  #celebrate .cta { max-width: 320px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="screen" id="screen"></div>
+
+  <!-- celebration overlay (hidden by default) -->
+  <div id="celebrate" class="hidden"></div>
+
+  <nav id="nav">
+    <button class="tab" data-tab="today">
+      <svg viewBox="0 0 24 28" fill="currentColor"><path d="M12 0C12 6 6 8 6 15a6 6 0 0 0 12 0c0-3-1.5-5-1.5-5 .5 4-2.5 5-2.5 2 0-4 1-7-2-12Z"/></svg>
+      <span class="lab">Today</span>
+    </button>
+    <button class="tab" data-tab="calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+      <span class="lab">Calendar</span>
+    </button>
+    <button class="tab" data-tab="awards">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="6"/><path d="M9 14l-2 8 5-3 5 3-2-8"/></svg>
+      <span class="lab">Awards</span>
+    </button>
+    <button class="tab" data-tab="friends">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="12" r="5"/><circle cx="16" cy="12" r="5"/></svg>
+      <span class="lab">Friends</span>
+    </button>
+  </nav>
+</div>
+
+<!-- shared SVG defs -->
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="emberGrad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#FF9F44"/><stop offset="1" stop-color="#E25C12"/>
+  </linearGradient>
+</defs></svg>
+
+<script>
+"use strict";
+
+/* ----------------------------------------------------------
+   Storage — uses localStorage when hosted; falls back to an
+   in-memory store so it never crashes inside a sandboxed preview.
+---------------------------------------------------------- */
+const Store = (() => {
+  let mem = {};
+  let ok = false;
+  try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); ok = true; } catch(e){ ok = false; }
+  return {
+    get(k){ try { return ok ? localStorage.getItem(k) : (mem[k] ?? null); } catch(e){ return mem[k] ?? null; } },
+    set(k,v){ try { ok ? localStorage.setItem(k,v) : (mem[k]=v); } catch(e){ mem[k]=v; } }
+  };
+})();
+
+/* ---------------- Date helpers (week starts Sunday) ---------------- */
+const DAY = 86400000;
+const iso = d => { const x=new Date(d); x.setHours(0,0,0,0); return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"); };
+const today = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
+const weekStart = d => { const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-x.getDay()); return x; };
+const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+
+/* ---------------- State ---------------- */
+const GOAL = 3;
+let visits = new Set();   // set of iso date strings
+let current = "today";
+let viewMonth = today();  // month shown on calendar
+
+function loadVisits(){
+  const raw = Store.get("ember.visits");
+  if (raw){ try { visits = new Set(JSON.parse(raw)); return; } catch(e){} }
+  seed();
+}
+function saveVisits(){ Store.set("ember.visits", JSON.stringify([...visits])); }
+
+/* Seed a believable history: 6 completed prior weeks + 2 visits this week,
+   so it opens at "2 of 3 · 6 week streak" just like the mockup, relative to the real today. */
+function seed(){
+  visits = new Set();
+  const ws = weekStart(today());
+  for (let w=1; w<=6; w++){
+    const base = addDays(ws, -7*w);
+    [2,4,6].forEach(off => visits.add(iso(addDays(base, off)))); // Tue/Thu/Sat
+  }
+  // this week so far: two visits before today (or earliest available)
+  const t = today();
+  let added = 0;
+  for (let off=0; off<7 && added<2; off++){
+    const d = addDays(ws, off);
+    if (d < t){ visits.add(iso(d)); added++; }
+  }
+  saveVisits();
+}
+
+/* ---------------- Derived stats ---------------- */
+const weekVisitCount = ws => { let n=0; for(let i=0;i<7;i++){ if(visits.has(iso(addDays(ws,i)))) n++; } return n; };
+const weekHot = ws => weekVisitCount(ws) >= GOAL;
+
+function streakWeeks(){
+  let s = 0;
+  let cur = weekStart(today());
+  if (weekHot(cur)) s++;            // current week counts only once complete
+  cur = addDays(cur, -7);
+  while (weekHot(cur)){ s++; cur = addDays(cur,-7); }
+  return s;
+}
+function bestWeek(){
+  // best single-week visit count across seeded + logged history
+  let best = 0;
+  let cur = weekStart(today());
+  for (let w=0; w<26; w++){ best = Math.max(best, weekVisitCount(addDays(cur,-7*w))); }
+  return best;
+}
+function hotWeeksInMonth(m){
+  // count weeks whose Sunday falls in month m and that are hot
+  let n=0; const first=new Date(m.getFullYear(),m.getMonth(),1);
+  let ws=weekStart(first);
+  for(let i=0;i<6;i++){ const w=addDays(ws,7*i); if(w.getMonth()===m.getMonth() && weekHot(w)) n++; }
+  return n;
+}
+function consecutiveHotMonths(){
+  // simple proxy: how many of the last weeks are hot, expressed in 4-week blocks reached
+  return streakWeeks();
+}
+
+/* ---------------- Icons ---------------- */
+const flame = (cls="") => `<svg class="${cls}" viewBox="0 0 24 28" fill="none">
+  <path d="M13 1C13.5 7 19 9 19 16.5A7 7 0 0 1 5 16.5C5 13 6.4 10.8 7 9.5c.3 3 2.4 3.6 2.4 1.2C9.4 6.5 10.5 4 13 1Z" fill="url(#emberGrad)"/>
+  <path d="M12.4 13c1.6 1 2.4 2.2 2.4 3.6a2.8 2.8 0 0 1-5.6 0c0-1.3 1-2.4 1.4-3 .2 1.1 1 1.3 1 .4 0-.3 .2-.7 .8-1Z" fill="#FFC861"/>
+</svg>`;
+const flameFlat = (color,cls="") => `<svg class="${cls}" viewBox="0 0 24 28" fill="${color}"><path d="M13 1C13.5 7 19 9 19 16.5A7 7 0 0 1 5 16.5C5 13 6.4 10.8 7 9.5c.3 3 2.4 3.6 2.4 1.2C9.4 6.5 10.5 4 13 1Z"/></svg>`;
+
+/* ---------------- Renderers ---------------- */
+const screen = document.getElementById("screen");
+
+function brand(extra=""){
+  return `<div class="brand">${flame("","")}<span class="word">Ember</span><span class="spacer"></span>
+    <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">${themeIcon()}</button></div>${extra}`;
+}
+function themeIcon(){
+  const dark = document.documentElement.getAttribute("data-theme")==="dark";
+  return dark
+    ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/><g stroke="currentColor" stroke-width="2"><path d="M12 1v3M12 20v3M1 12h3M20 12h3M4 4l2 2M18 18l2 2M20 4l-2 2M6 18l-2 2"/></g></svg>`
+    : `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10Z"/></svg>`;
+}
+
+function renderToday(){
+  const ws = weekStart(today());
+  const count = Math.min(weekVisitCount(ws), GOAL);
+  const loggedToday = visits.has(iso(today()));
+  const streak = streakWeeks();
+  const R = 100, C = 2*Math.PI*R, off = C*(1 - weekVisitCount(ws)/GOAL);
+
+  const dayNames=["S","M","T","W","T","F","S"];
+  let strip="";
+  for(let i=0;i<7;i++){
+    const d=addDays(ws,i), id=iso(d), isToday=id===iso(today());
+    const gym=visits.has(id);
+    const cls = gym ? "gym" : (isToday ? "" : "dim");
+    strip += `<div class="day ${cls} ${isToday?'today':''}">${d.getDate()}</div>`;
+  }
+  let dows = dayNames.map((n,i)=>`<span class="${i===0?'sun':''}${i===6?'sat':''}">${n}</span>`).join("");
+
+  let drops="";
+  for(let i=0;i<GOAL;i++) drops += flameFlat(i<count?'url(#emberGrad)':'var(--faint)', "drop "+(i<count?'lit':''));
+
+  screen.innerHTML = brand() + `
+    <div class="eyebrow">This week's goal</div>
+    <div class="ring-wrap">
+      <div class="ring">
+        <svg width="230" height="230" viewBox="0 0 230 230">
+          <circle class="track" cx="115" cy="115" r="${R}"/>
+          <circle class="prog" cx="115" cy="115" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${C}" />
+        </svg>
+        <div class="center">${flame("flame-top")}<div class="big">${count}</div><div class="of">of ${GOAL} visits</div></div>
+      </div>
+    </div>
+    <div class="streak-pill">${flameFlat('url(#emberGrad)')}<span>${streak} week streak</span></div>
+
+    <div class="week-card">
+      <div class="dow">${dows}</div>
+      <div class="week-row">${strip}</div>
+      <div class="goal-row"><span class="label">Goal · ${GOAL}× this week</span><span class="drops">${drops}</span></div>
+    </div>
+
+    <button class="cta ${loggedToday?'done':''}" id="logBtn" onclick="logVisit()">${loggedToday?'Logged today ✓':'I went to the gym'}</button>
+    <div class="hint">Going ${GOAL}× a week keeps your fire alive</div>
+  `;
+  // animate ring fill
+  requestAnimationFrame(()=>{ const p=screen.querySelector(".prog"); if(p) p.style.strokeDashoffset=off; });
+}
+
+function renderCalendar(){
+  const m = viewMonth;
+  const monthName = m.toLocaleString('en-GB',{month:'long'}) + " " + m.getFullYear();
+  const first = new Date(m.getFullYear(), m.getMonth(), 1);
+  let ws = weekStart(first);
+  let weeks="";
+  for(let w=0; w<6; w++){
+    const wkStart = addDays(ws, 7*w);
+    if (wkStart.getMonth()!==m.getMonth() && w>0 && addDays(wkStart,6).getMonth()!==m.getMonth() && wkStart>first) {}
+    let cells="";
+    for(let i=0;i<7;i++){
+      const d=addDays(wkStart,i), id=iso(d);
+      const other = d.getMonth()!==m.getMonth();
+      const gym = visits.has(id);
+      const isToday = id===iso(today());
+      cells += `<div class="cell ${other?'other':''} ${gym?'gym':''} ${isToday?'today':''}"><span class="num">${d.getDate()}</span></div>`;
+    }
+    const hot = weekHot(wkStart) && (wkStart.getMonth()===m.getMonth()||addDays(wkStart,6).getMonth()===m.getMonth());
+    weeks += `<div class="cal-week ${hot?'hot':''}">${cells}</div>`;
+  }
+  const hw = hotWeeksInMonth(m);
+  const dows = ["S","M","T","W","T","F","S"].map(n=>`<span>${n}</span>`).join("");
+
+  screen.innerHTML = brand() + `
+    <div class="month-head">
+      <button onclick="shiftMonth(-1)">‹</button>
+      <span class="m">${monthName}</span>
+      <button onclick="shiftMonth(1)">›</button>
+    </div>
+    <div class="cal-dow">${dows}</div>
+    <div class="cal-grid">${weeks}</div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--ember)"></span>Gym day</span>
+      <span><span class="sw" style="background:var(--hot-band);box-shadow:inset 0 0 0 1px var(--faint)"></span>Hot week</span>
+    </div>
+    <div class="info-card">
+      <div class="ic">${flameFlat('url(#emberGrad)')}</div>
+      <div><h3>${hw} hot week${hw===1?'':'s'} this month</h3>
+      <p>${hw>=4?'You unlocked the Hot Month badge. The fire spreads.':'One more hot week and you unlock a Hot Month badge.'}</p></div>
+    </div>
+  `;
+}
+
+function renderAwards(){
+  const anyVisit = visits.size>0;
+  const anyHot = (()=>{ let c=weekStart(today()); for(let w=0;w<26;w++){ if(weekHot(addDays(c,-7*w))) return true; } return false; })();
+  const streak = streakWeeks();
+  const best = bestWeek();
+  const hotMonth = consecutiveHotMonths()>=4;
+
+  const badges = [
+    {name:"First Spark", desc:"Your first gym visit", on:anyVisit},
+    {name:"Hot Week", desc:"Hit a weekly target", on:anyHot},
+    {name:"Hot Month", desc:"4 hot weeks in a row", on:hotMonth, prog:`${Math.min(streak,4)}/4`},
+    {name:"Six-Week Blaze", desc:"6 weeks running", on:streak>=6, prog:`${Math.min(streak,6)}/6`},
+    {name:"Eight-Week Inferno", desc:"8 weeks running", on:streak>=8, prog:`${Math.min(streak,8)}/8`},
+    {name:"Perfect Week", desc:"4+ visits in a week", on:best>=4, prog:`best ${Math.min(best,4)}`},
+  ];
+
+  const cards = badges.map(b=>{
+    const locked = !b.on;
+    return `<div class="badge ${locked?'locked':''}">
+      <div class="disc">${ locked ? flameFlat('var(--muted)') : flame() }</div>
+      <div class="name">${b.name}</div>
+      <div class="desc">${b.desc}</div>
+      ${ (locked && b.prog) ? `<div class="prog">${b.prog}</div>` : (b.on ? '' : '') }
+    </div>`;
+  }).join("");
+
+  screen.innerHTML = brand() + `
+    <h1 class="page-title">Achievements</h1>
+    <p class="page-sub">Badges that heat up as your streak grows.</p>
+    <div class="badge-grid">${cards}</div>
+  `;
+}
+
+const FREEZE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="var(--freeze)" stroke-width="2"><path d="M12 2v20M2 12h20M5 5l14 14M19 5L5 19"/></svg>`;
+let friends = [
+  {n:"Maya",  init:"M", c:"#C77B3E", wk:14, st:"On a 14-week hot streak", act:"Cheer",  type:"solid"},
+  {n:"Leo",   init:"L", c:"#B5552E", wk:null, st:"Hasn't logged this week", act:"Nudge", type:"ghost"},
+  {n:"Priya", init:"P", c:"#D98A3A", wk:5, st:"Marked back from injury", act:"Send freeze", type:"ghost"},
+  {n:"Sam",   init:"S", c:"#C99A3E", wk:3, st:"Hit the gym this morning", act:"Cheer", type:"solid"},
+  {n:"Yuki",  init:"Y", c:"#C77B3E", wk:9, st:"9 weeks · perfect record", act:"Cheer", type:"solid"},
+];
+let freezes = 2;
+
+function renderFriends(){
+  const rows = friends.map((f,idx)=>`
+    <div class="friend">
+      <div class="avatar" style="background:${f.c}">${f.init}</div>
+      <div class="meta">
+        <div class="nm">${f.n} ${f.wk!=null?`<span class="wk">${flameFlat('var(--ember)')} ${f.wk}</span>`:''}</div>
+        <div class="st">${f.st}</div>
+      </div>
+      <button class="act ${f.type}" data-i="${idx}" onclick="friendAct(${idx})">${f.act}</button>
+    </div>`).join("");
+
+  screen.innerHTML = brand() + `
+    <h1 class="page-title">Friends</h1>
+    <p class="page-sub">Keep each other's fire going.</p>
+    <div class="freeze-card">
+      <div class="ic">${FREEZE_ICON}</div>
+      <div><h3>${freezes} streak freeze${freezes===1?'':'s'}</h3><p>Gift one to a friend having a tough week.</p></div>
+    </div>
+    ${rows}
+  `;
+}
+
+/* ---------------- Actions ---------------- */
+function logVisit(){
+  const id = iso(today());
+  if (visits.has(id)) return;        // already logged today
+  visits.add(id); saveVisits();
+  const justHit = weekVisitCount(weekStart(today())) === GOAL;
+  renderToday();
+  if (justHit) setTimeout(celebrate, 650);
+}
+
+function celebrate(){
+  const ws = weekStart(today());
+  const streak = streakWeeks();
+  const dayLetters=["S","M","T","W","T","F","S"];
+  let dots="";
+  for(let i=0;i<7;i++){ const on=visits.has(iso(addDays(ws,i))); dots+=`<div class="cd ${on?'on':''}">${dayLetters[i]}</div>`; }
+  const el = document.getElementById("celebrate");
+  el.innerHTML = `
+    ${flame("bigflame")}
+    <div class="num">${streak}</div>
+    <div class="lab">week streak!</div>
+    <div class="dots">${dots}</div>
+    <p>You hit your ${GOAL}× goal this week. The fire grows hotter!</p>
+    <button class="cta" onclick="closeCelebrate()">Keep it going</button>
+  `;
+  el.classList.remove("hidden");
+}
+function closeCelebrate(){ document.getElementById("celebrate").classList.add("hidden"); }
+
+function friendAct(i){
+  const f = friends[i];
+  if (f.done) return;
+  if (f.act==="Send freeze"){
+    if (freezes<=0) return;
+    freezes--; f.act="Sent ✓";
+  } else if (f.act==="Nudge"){ f.act="Nudged ✓"; }
+  else { f.act="Cheered ✓"; }
+  f.type="spent"; f.done=true;
+  renderFriends();
+}
+
+function shiftMonth(n){ viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+n, 1); renderCalendar(); }
+
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";
+  document.documentElement.setAttribute("data-theme", cur);
+  Store.set("ember.theme", cur);
+  render();
+}
+
+/* ---------------- Router ---------------- */
+function render(){
+  if (current==="today") renderToday();
+  else if (current==="calendar"){ viewMonth = today(); renderCalendar(); }
+  else if (current==="awards") renderAwards();
+  else if (current==="friends") renderFriends();
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===current));
+}
+document.getElementById("nav").addEventListener("click", e=>{
+  const btn = e.target.closest(".tab"); if(!btn) return;
+  current = btn.dataset.tab; render();
+});
+
+/* ---------------- Boot ---------------- */
+(function init(){
+  const t = Store.get("ember.theme"); if (t) document.documentElement.setAttribute("data-theme", t);
+  loadVisits();
+  render();
+})();
+</script>
+</body>
+</html>
