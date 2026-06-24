@@ -130,7 +130,7 @@
   /* ---------- TODAY ---------- */
   .ring-wrap { display:flex; flex-direction:column; align-items:center; margin: 8px 0 4px; }
   .ring { position: relative; width: 230px; height: 230px; }
-  .ring svg { transform: rotate(-90deg); display:block; }
+  .ring > svg { transform: rotate(-90deg); display:block; }
   .ring .track { fill:none; stroke: var(--ring-track); stroke-width: 15; }
   .ring .prog { fill:none; stroke: url(#emberGrad); stroke-width: 15; stroke-linecap: round; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1); }
   .ring .center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
@@ -398,7 +398,7 @@ const flameFlat = (color,cls="") => `<svg class="${cls}" viewBox="0 0 24 28" fil
 const screen = document.getElementById("screen");
 
 function brand(extra=""){
-  return `<div class="brand">${flame("","")}<span class="word">Ember</span><span class="spacer"></span>
+  return `<div class="brand"><span class="spacer"></span>
     <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">${themeIcon()}</button></div>${extra}`;
 }
 function themeIcon(){
@@ -448,7 +448,7 @@ function renderToday(){
     </div>
 
     <button class="cta ${loggedToday?'done':''}" id="logBtn" onclick="logVisit()">${loggedToday?'Logged today ✓':'I went to the gym'}</button>
-    <div class="hint">Going ${GOAL}× a week keeps your fire alive</div>
+    <div class="hint">${loggedToday?'Tapped by mistake? Tap again to undo today':`Going ${GOAL}× a week keeps your fire alive`}</div>
   `;
   // animate ring fill
   requestAnimationFrame(()=>{ const p=screen.querySelector(".prog"); if(p) p.style.strokeDashoffset=off; });
@@ -563,13 +563,22 @@ function renderFriends(){
 }
 
 /* ---------------- Actions ---------------- */
+let lockUndo = false;                  // blocks undo during the pre-splash delay
 function logVisit(){
   const id = iso(today());
-  if (visits.has(id)) return;        // already logged today
+  if (lockUndo) return;                // ignore taps until the splash has appeared
+  if (visits.has(id)){                 // already logged — undo (e.g. accidental tap)
+    visits.delete(id); saveVisits();
+    renderToday();
+    return;
+  }
   visits.add(id); saveVisits();
   const justHit = weekVisitCount(weekStart(today())) === GOAL;
   renderToday();
-  if (justHit) setTimeout(celebrate, 650);
+  if (justHit){
+    lockUndo = true;
+    setTimeout(()=>{ lockUndo = false; celebrate(); }, 650);
+  }
 }
 
 function celebrate(){
